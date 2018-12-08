@@ -1,0 +1,41 @@
+<?php
+
+require_once __DIR__ . '/../_Pulsa/Helper.php';
+
+$helper = new Helper;
+
+// Mitra Info
+$inf = $helper->info();
+
+echo 'Mitra Info :'. PHP_EOL;
+print_r($inf);
+echo PHP_EOL;
+
+// Daftar Produk
+$data['id'] = NULL;
+$pro = $helper->produk($data);
+echo 'Daftar Produk :'. PHP_EOL;
+print_r($pro);
+echo PHP_EOL;
+
+// Inquiry
+$data['phone'] = '08123456789';
+$inq = $helper->inquiry($data);
+echo 'Inquiry :'. PHP_EOL;
+print_r($inq);
+echo PHP_EOL;
+
+// Payment
+$data['id'] = $inq[0]['product_id'];
+$data['harga'] = $inq[0]['price'];
+$pay = $helper->payment($data);
+echo 'Payment :'. PHP_EOL;
+print_r($pay);
+echo PHP_EOL;
+
+// Cek status
+$data['id_transaksi'] = $pay['trxID'];
+$sta = $helper->status($data);
+echo 'Cek Status :'. PHP_EOL;
+print_r($sta);
+echo PHP_EOL;
