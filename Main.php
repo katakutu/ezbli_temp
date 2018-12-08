@@ -243,13 +243,19 @@ class Main extends CI_Controller {
 				];
 				echo "<option selected disabled>- Pilih Kereta</option>";
 				$schedule = $helper->kai_search($data);
+				$trainNumber = array_unique(array_column($schedule['schedule'], 'trainNumber'));
+				$trainNumber = array_values($trainNumber);
 				if($schedule['errCode'] != "0"){
 					echo "<option value=''>".$schedule['msg']."</option>";
 				}
 				else{
-					$trainList = $schedule['schedule'];
-					foreach ($trainList as $value) {
-						echo "<option value='".$value['trainNumber']."'>".$value['trainName']." (".$value['adult'].")"."</option>";
+					$i=0;
+					foreach($schedule['schedule'] as $value) {
+						if($value['trainNumber'] == $trainNumber[$i]){
+							echo "<option value='".$trainNumber[$i]."'>".$value['trainName']." (".$value['departTime']."-".$value['arriveTime'].")</option>";
+							$i++;
+							if($i >= count($trainNumber)) break;
+						}
 					}
 					break;
 				}
@@ -264,18 +270,23 @@ class Main extends CI_Controller {
 					'no_kereta' => $this->input->post('no_kereta'),
 				];
 				echo "<option selected disabled>- Pilih Kelas</option>";
-				$seatmap = $helper->kai_seatmap($data);
-				$class = array_column($seatmap['seat_map'], 0);
-				$class = array_unique($class);
-				foreach ($class as $value) {
-					if($value == "BISBIS"){
-						echo "<option value='".$value."'>Bisnis</option>";
-					}
-					if($value == "EKON"){
-						echo "<option value='".$value."'>Ekonomi</option>";
-					}
-					if($value == "EKS"){
-						echo "<option value='".$value."'>Eksekutif</option>";
+				$schedule = $helper->kai_search($data);
+				$flag=0;
+				foreach ($schedule['schedule'] as $value) {
+					if($value['trainNumber'] == $data['no_kereta']){
+						if($value['codeClass'] == "E"){
+							echo "<option value='EKS'>Eksekutif (".$value['adult'].")</option>";
+							$flag++;
+						}
+						else if($value['codeClass'] == "B"){
+							echo "<option value='BISBIS'>Bisnis (".$value['adult'].")</option>";
+							$flag++;
+						}
+						else if($value['codeClass'] == "K"){
+							echo "<option value='EKON'>Ekonomi (".$value['adult'].")</option>";
+							$flag++;
+						}
+						if($flag==3) break;
 					}
 				}
 				break;
@@ -287,13 +298,13 @@ class Main extends CI_Controller {
 					'tujuan' => $this->input->post('tujuan'),
 					'tanggal' => date('Y-m-d', strtotime($this->input->post('tanggal'))),
 					'no_kereta' => $this->input->post('no_kereta'),
-					'class' => $this->input->post('class'),
+					'kode_gerbong' => $this->input->post('kode_gerbong'),
 				];
 				echo "<option selected disabled>- Pilih Gerbong</option>";
 				$seatmap = $helper->kai_seatmap($data);
 				$gerbong = $seatmap['seat_map'];
 				foreach ($gerbong as $value) {
-					if($value[0] == $this->input->post('class')){
+					if($value[0] == $this->input->post('kode_gerbong')){
 						echo "<option value='".$value[1]."'>".$value[1]."</option>";
 					}
 				}
@@ -306,16 +317,16 @@ class Main extends CI_Controller {
 					'tujuan' => $this->input->post('tujuan'),
 					'tanggal' => date('Y-m-d', strtotime($this->input->post('tanggal'))),
 					'no_kereta' => $this->input->post('no_kereta'),
-					'class' => $this->input->post('class'),
-					'gerbong' => $this->input->post('gerbong')
+					'kode_gerbong' => $this->input->post('kode_gerbong'),
+					'no_gerbong' => $this->input->post('no_gerbong')
 				];
 
 				$seatmap = $helper->kai_seatmap($data);
 				foreach ($seatmap['seat_map'] as $value) {
-					if($value[0] == $this->input->post('class') && $value[1] == $this->input->post('gerbong')){
+					if($value[0] == $this->input->post('kode_gerbong') && $value[1] == $this->input->post('no_gerbong')){
 						foreach ($value[2] as $key) {
 							if($key[5] == 0)
-								echo "<option value='bis".$key['2'].$key['3']."'>".$key['2'].$key['3']."</option>";
+								echo "<option value='".$key['2'].$key['3']."'>".$key['2'].$key['3']."</option>";
 						}
 						break;
 					}

@@ -67,12 +67,46 @@ class PPOB extends CI_Controller {
 		else if ($page == "tiket") {
 			$rules = [
 				'required' => [
-						['asal'], ['tujuan'], ['tanggal'], ['no_kereta'], ['subclass'], ['dewasa'], ['bayi'], ['penumpang'], ['pilih_kursi'], ['kode_gerbong'], ['no_gerbong'], ['kursi']
+						['asal'], ['tujuan'], ['tanggal'], ['no_kereta'], ['subclass'], ['dewasa'], ['bayi'], ['penumpang'], ['kode_gerbong'], ['no_gerbong'], ['kursi']
 				]
 			];
 			$validate 	= $this->validation->check($rules,'post');
-			print_r($validate);
-			return;
+			if(count($this->input->post('kursi')) != $this->input->post('dewasa')){
+				$this->webdata->show_404();
+				return;
+			}
+			$data['asal'] = $this->input->post('asal');
+			$data['tujuan'] = $this->input->post('tujuan');
+			$data['tanggal'] = $this->input->post('tanggal');
+			$data['no_kereta'] = $this->input->post('no_kereta');
+			$data['dewasa'] = $this->input->post('dewasa');
+			$data['bayi'] = $this->input->post('bayi');
+			$data['kode_gerbong'] = $this->input->post('kode_gerbong');
+			$data['no_gerbong'] = $this->input->post('no_gerbong');
+			$data['pilih_kursi'] = 'manual';
+			$data['subclass'] = $this->input->post('subclass');
+			$data['kursi'] = $this->input->post('kursi')[0];
+			for($i = 0; $i < $data['dewasa']; $i++){
+				$data['penumpang']['adult'][$i]['adult_name'] = $this->input->post('adult_name')[$i];
+				$data['penumpang']['adult'][$i]['adult_id'] = $this->input->post('adult_id')[$i];
+				$data['penumpang']['adult'][$i]['adult_date_of_birth'] = $this->input->post('adult_date_of_birth')[$i];
+				$data['penumpang']['adult'][$i]['adult_phone'] = $this->input->post('adult_phone')[$i];
+			}
+			for($i = 0; $i < $data['bayi']; $i++){
+				$data['penumpang']['infant'][$i]['infant_name'] = $this->input->post('infant_name')[$i];
+				$data['penumpang']['infant'][$i]['infant_id'] = $this->input->post('infant_id')[$i];
+				$data['penumpang']['infant'][$i]['infant_date_of_birth'] = $this->input->post('infant_date_of_birth')[$i];
+				$data['penumpang']['infant'][$i]['infant_phone'] = $this->input->post('infant_phone')[$i];
+			}
+			$helper = new ApiHelperKAI;
+			$booking = $helper->kai_book($data);
+			$data['kode_booking'] = $booking['bookingCode'];
+			$data['harga'] = $booking['totalPrice'];
+			$name = $booking['TrainName']." Class ".$booking['subClass']." ".$data['dewasa']." Seats";
+			$nominal = $booking['ticketPrice'];
+			$price = $booking['totalPrice'] + $booking['fee'];
+			$produk_id = 'KAI';
+			$needed = json_encode($data);
 		}
 
 		else if($page == "tagihan"){

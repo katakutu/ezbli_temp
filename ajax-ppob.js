@@ -87,11 +87,11 @@ $("#tagihantype").change(function(){
 $("#servicetype").change(function(){
 	var val = $(this).val();
 	if(val == "kai"){
-		var echo = "<label>Dari Stasiun: </label><select name=\"asal\" id=\"kaisrc\" required></select><label>Ke Stasiun: </label><select name=\"tujuan\" id=\"kaidest\" required></select><label>Tanggal: </label><input type=\"date\" id=\"tanggal\" name=\"tanggal\" required><label>Pilih Kereta: </label><select name=\"no_kereta\" id=\"no_kereta\" required></select><label>Pilih Kelas: </label><select name=\"class\" id=\"class\" required></select><label>Pilih Gerbong: </label><select name=\"no_gerbong\" id=\"no_gerbong\" required></select><label>Pilih Subclass: </label><select name=\"subclass\" id=\"subclass\" required><option selected disabled>- Pilih Subclass</option><option value=\"A\">A</option><option value=\"B\">B</option><option value=\"C\">C</option></select><label>Pilih Seat: </label><select multiple=\"multiple\" name=\"kursi[]\" id=\"kursi\" required></select><label>Jumlah Penumpang (Selain bayi): </label><input type=\"number\" max=4 min=1 name=\"dewasa\" id=\"dewasa\" required><div id=\"adult\"></div><label>Infant: </label><input type=\"number\" max=4 name=\"bayi\" id=\"bayi\" required>";
+		var echo = "<label>Dari Stasiun: </label><select name=\"asal\" id=\"kaisrc\" required></select><label>Ke Stasiun: </label><select name=\"tujuan\" id=\"kaidest\" required></select><label>Tanggal: </label><input type=\"date\" id=\"tanggal\" name=\"tanggal\" required><label>Pilih Kereta: </label><select name=\"no_kereta\" id=\"no_kereta\" required></select><label>Pilih Kelas: </label><select name=\"kode_gerbong\" id=\"kode_gerbong\" required></select><label>Pilih Gerbong: </label><select name=\"no_gerbong\" id=\"no_gerbong\" required></select><label>Pilih Subclass: </label><select name=\"subclass\" id=\"subclass\" required><option selected disabled>- Pilih Subclass</option><option value=\"A\">A</option><option value=\"B\">B</option><option value=\"C\">C</option></select><label>Jumlah Penumpang (Selain bayi): </label><input type=\"number\" max=4 min=1 name=\"dewasa\" id=\"dewasa\" required><div id=\"adult\"></div><label>Infant: </label><input type=\"number\" max=4 name=\"bayi\" min=0 id=\"bayi\" required><div id=\"infant\"></div><label>Pilih Seat: </label><select multiple=\"multiple\" name=\"kursi[]\" id=\"kursi\" required></select>";
 		$("#service").html(echo);
 		var last_valid_selection = null;
     $('#kursi').change(function(event) {
-      if ($(this).val().length > 4) {
+      if ($(this).val().length > 4 || $(this).val().length > $("#dewasa").val()) {
         $(this).val(last_valid_selection);
       } else {
         last_valid_selection = $(this).val();
@@ -135,16 +135,16 @@ $("#servicetype").change(function(){
 					data: $("#tiket").serialize(),
 					beforeSend:function(){
 						var wait = "<option value=\"\" selected disabled>- Mohon tunggu</option>";
-						$('#class').html(wait);
+						$('#kode_gerbong').html(wait);
 					}
 				}).done(function(response){
-					$('#class').html(response);
+					$('#kode_gerbong').html(response);
 				}).fail(function(response){
 					var response = response.responseJSON;
 					sweetAlert("Oops...",response.message, "error");
 				})
 		})
-		$("#tanggal, #kaisrc, #kaidest, #no_kereta, #class").change(function(){
+		$("#tanggal, #kaisrc, #kaidest, #no_kereta, #kode_gerbong").change(function(){
 			$.ajax({
 					url:"/Main/list/kaigerbong",
 					method:'POST',
@@ -160,7 +160,23 @@ $("#servicetype").change(function(){
 					sweetAlert("Oops...",response.message, "error");
 				})
 		})
-		$("#tanggal, #kaisrc, #kaidest, #no_kereta, #class, #no_gerbong").change(function(){
+		$("#dewasa").change(function(){
+			var jmldws = $("#dewasa").val();
+			var form = '';
+			for(i=0; i<jmldws; i++){
+				form += "<label>Nama : </label><input type=\"text\" name=\"adult_name[]\" required><label>Tanda Pengenal: </label><input type=\"text\" name=\"adult_id[]\" maxlength=24><label>Tanggal Lahir: </label><input type=\"date\", name=\"adult_date_of_birth[]\"><label>Nomor HP: </label><input type=\"number\" name=\"adult_phone[]\">";
+			}
+			$("#adult").html(form);
+		})
+		$("#bayi").change(function(){
+			var jmlby = $("#bayi").val();
+			var form = '';
+			for(i=0; i<jmlby; i++){
+				form += "<label>Nama : </label><input type=\"text\" name=\"infant_name[]\" required><label>Tanggal Lahir: </label><input type=\"date\", name=\"infant_date_of_birth[]\">";
+			}
+			$("#infant").html(form);
+		})
+		$("#tanggal, #kaisrc, #kaidest, #no_kereta, #kode_gerbong, #no_gerbong").change(function(){
 			$.ajax({
 					url:"/Main/list/kaiseat",
 					method:'POST',
@@ -175,14 +191,6 @@ $("#servicetype").change(function(){
 					var response = response.responseJSON;
 					sweetAlert("Oops...",response.message, "error");
 				})
-		})
-		$("#dewasa").change(function(){
-			var jmldws = $("#dewasa").val();
-			var form = ''
-			for(i=0; i<jmldws; i++){
-				form += "<label>Nama : </label><input type=\"text\" name=\"adult_name[]\" required><label>Tanda Pengenal: </label><input type=\"text\" name=\"adult_id[]\" maxlength=24><label>Tanggal Lahir: </label><input type=\"date\", name=\"adult_date_of_birth[]\"><label>Nomor HP: </label><input type=\"number\" name=\"adult_phone\">";
-			}
-			$("#adult").html(form);
 		})
 	}
 
